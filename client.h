@@ -52,6 +52,44 @@ private:
     }
   }
 
+  UrlMeta parseUrl(std::string url) {
+    UrlMeta _meta;
+    _meta.port = -1;
+    
+    // Scheme
+    size_t pos = url.find("://");
+    if (pos != std::string::npos) {
+      _meta.scheme = url.substr(0, pos).c_str();
+      url.erase(0, pos + 3);
+    }
+
+    // TLD - Top Level Domain
+    pos = url.find("/");
+    if (pos != std::string::npos) {
+      _meta.path = url.substr(pos);
+      url.erase(pos);
+    } else {
+      _meta.path = "/";
+    }
+
+    // Port
+    pos = url.find(":");
+    if (pos != std::string::npos) {
+      _meta.host = url.substr(0, pos);
+      _meta.port = std::stoi(url.substr(pos + 1));
+    }
+    else {
+      _meta.host = url;
+    }
+
+    // std::cout << "scheme: " << _meta.scheme << "\n";
+    // std::cout << "host: " << _meta.host << "\n";
+    // std::cout << "port: " << (_meta.port < 0 ? -1 : _meta.port) << "\n";
+    // std::cout << "path: " << _meta.path << "\n";
+
+    return _meta;
+  }
+
   std::string constructRequest(RequestType type, std::string route) {
     std::stringstream request, header, host, body;
 
