@@ -10,13 +10,14 @@ int main(int argc, char** argv) {
   
   _client->openConnection();
 
-  std::string request =
-    "GET / HTTP/1.1\r\n"
-    "Host: 127.0.0.1:8070\r\n"
-    "Connection: close\r\n\r\n";
-  _client->sendRequest(request);
+  _client->sendRequest(GET, "/");
 
-  _client->recvResponse();
+  std::string response = _client->recvResponse();
+  
+  std::cout << "\n-----Response-----\n";
+  std::cout << response;
+
+  delete _client;
 
   return 0;
 }
