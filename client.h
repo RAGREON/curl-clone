@@ -27,6 +27,15 @@ std::unordered_map<RequestType, std::string> requestMap = {
   { PUT,    "PUT" }
 };
 
+struct UrlMeta {
+  int             port;
+  std::string     scheme;
+  std::string     host;
+  std::string     path;
+
+  UrlMeta() : port(80), scheme("http") { }
+};
+
 class Client {
 private:
   WSADATA       wsaData;
