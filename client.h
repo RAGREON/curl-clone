@@ -6,12 +6,26 @@
 #include <ws2tcpip.h>
 #include <iostream>
 #include <stdlib.h>
+#include <sstream>
+#include <unordered_map>
 
 #define LOG_ERROR(info) \
   std::cout << "LINE: " << __LINE__ << " | "; \
   std::cerr << info << " " << WSAGetLastError() << std::endl;
 
 #define BUFFER_SIZE 1024
+
+enum RequestType {
+  GET, POST, DEL, PATCH, PUT
+};
+
+std::unordered_map<RequestType, std::string> requestMap = {
+  { GET,    "GET" },
+  { POST,   "POST" },
+  { DEL,    "DELETE" },
+  { PATCH,  "PATCH"},
+  { PUT,    "PUT" }
+};
 
 class Client {
 private:
@@ -69,6 +83,7 @@ public:
 
     std::cout << "Request sent to server." << std::endl;
   }
+
 
   void recvResponse() {
     char buffer[BUFFER_SIZE] = { };
