@@ -1,14 +1,15 @@
 #include "client.h"
 
 int main(int argc, char** argv) {
-  std::string ip = argv[1];
-  int port = std::stoi(argv[2]);
+  std::string url = argv[1];
 
   Client* _client = new Client();
 
-  _client->setServerAddress(ip, port);
+  _client->setServerAddress(url);
+
+  // _client->setServerAddress(ip, port);
   
-  _client->openConnection();
+  // _client->openConnection();
 
   _client->sendRequest(GET, "/");
 
