@@ -133,6 +133,29 @@ public:
     serverAddress.sin_addr.s_addr = inet_addr(ip.c_str());
     serverAddress.sin_port = htons(port);
   }
+  
+  void setServerAddress(std::string url) {
+    addrinfo hints {};
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    addrinfo* result = nullptr;
+
+    UrlMeta _meta = parseUrl(url);
+
+    iResult = getaddrinfo(_meta.host.c_str(), _meta.scheme.c_str(), &hints, &result);
+
+    for (addrinfo* ptr = result; ptr != nullptr; ptr = ptr->ai_next) {
+      if (connect(clientSocket, ptr->ai_addr, (int)ptr->ai_addrlen) == 0) break;
+    }
+
+    serverAddress = *reinterpret_cast<sockaddr_in*>(result->ai_addr);
+    
+    std::cout << "ip:" << inet_ntoa(serverAddress.sin_addr) << "\n";
+    std::cout << "port:" << ntohs(serverAddress.sin_port) << std::endl;
+
+    CHECK_RC("Failed to resolve url.");
+  }
 
   void openConnection() {
     iResult = connect(clientSocket, (SOCKADDR*) &serverAddress, sizeof(serverAddress));
