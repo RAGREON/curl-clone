@@ -33,6 +33,7 @@ private:
   int           iResult;
   SOCKET        clientSocket;
   sockaddr_in   serverAddress;
+  bool          connected;
 
   void inline CHECK_RC(std::string errorMessage) {
     if (iResult == SOCKET_ERROR) {
@@ -40,6 +41,24 @@ private:
       WSACleanup();
       exit(1);
     }
+  }
+
+  std::string constructRequest(RequestType type, std::string route) {
+    std::stringstream request, header, host, body;
+
+    header << 
+      requestMap[type] << " " << 
+      route << " " <<
+      "HTTP/1.1\r\n";
+   
+    host <<
+      "Host: " << inet_ntoa(serverAddress.sin_addr) << ":" << ntohs(serverAddress.sin_port) << "\r\n" <<
+      "Connection: Close\r\n" <<
+      "\r\n";
+
+    request << header.str() << host.str();
+
+    return request.str();
   }
 
 public:
@@ -73,10 +92,16 @@ public:
 
     CHECK_RC("Failed to form connection to server.");
 
+    connected = true;
     std::cout << "Successfully connected to server." << std::endl;
   } 
 
-  void sendRequest(std::string request) {
+  void sendRequest(RequestType type, std::string route = "/") {
+    std::string request = constructRequest(type, route);
+
+    std::cout << "\n-----Request-----\n";
+    std::cout << request << "\n";
+
     iResult = send(clientSocket, request.c_str(), (int)request.length(), 0);
 
     CHECK_RC("Failed to send request.");
@@ -84,25 +109,28 @@ public:
     std::cout << "Request sent to server." << std::endl;
   }
 
+  std::string recvResponse() {
+    std::stringstream response;
 
-  void recvResponse() {
     char buffer[BUFFER_SIZE] = { };
-
-    std::cout << "\n-----Response-----\n";
 
     do {
       iResult = recv(clientSocket, buffer, BUFFER_SIZE, 0);
 
       if (iResult > 0) 
-        std::cout << buffer;
+        response << buffer;
       else if (iResult == 0)
-        std::cout << "Server close connection." << std::endl;
+        connected = false;
       else 
         CHECK_RC("Failed to receive buffer from server.");
     } while (iResult > 0);
+
+    return response.str();
   }
 
   void closeConnection() {
+    if (!connected) return;
+
     iResult = closesocket(clientSocket);
 
     CHECK_RC("Failed to close socket.");
