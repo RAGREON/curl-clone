@@ -1,5 +1,25 @@
 #include <client.h>
 
+#define LOG_ERROR(info, line) \
+  std::cout << "LINE: " << line << " | "; \
+  std::cerr << info << " " << WSAGetLastError() << std::endl;
+
+/*
+  PRIVATE 
+*/
+
+void inline Client::CHECK_RC(std::string errorMessage, int line) {
+  if (iResult == SOCKET_ERROR) {
+    LOG_ERROR(errorMessage, line);
+    WSACleanup();
+    exit(1);
+  }
+}
+
+/*
+  PUBLIC
+*/
+
 Client::Client(int af_family, int sock_type, int protocol) {
   /*
     Configuring socket type:
@@ -10,11 +30,8 @@ Client::Client(int af_family, int sock_type, int protocol) {
   CHECK_RC("Socket creation failed.");
 
   serverAddress.sin_family = AF_INET;
-}
 
-void Client::setServerAddress(std::string ip, int port) {
-  serverAddress.sin_addr.s_addr = inet_addr(ip.c_str());
-  serverAddress.sin_port = htons(port);
+  addressList = nullptr;
 }
 
 void Client::setServerAddress(std::string url) {
@@ -22,26 +39,27 @@ void Client::setServerAddress(std::string url) {
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_STREAM;
 
-  addrinfo* result = nullptr;
-
   auto _meta = Url::parseUrl(url);
 
-  iResult = getaddrinfo(_meta.host.c_str(), std::to_string(_meta.port).c_str(), &hints, &result);
+  iResult = getaddrinfo(_meta.host.c_str(), std::to_string(_meta.port).c_str(), &hints, &addressList);
 
-  for (addrinfo* ptr = result; ptr != nullptr; ptr = ptr->ai_next) {
-    if (connect(clientSocket, ptr->ai_addr, (int)ptr->ai_addrlen) == 0) break;
+  if (addressList == nullptr) {
+    std::cerr << "Invalid url" << std::endl;
+    exit(1);
   }
-
-  serverAddress = *reinterpret_cast<sockaddr_in*>(result->ai_addr);
-  
-  std::cout << "ip:" << inet_ntoa(serverAddress.sin_addr) << "\n";
-  std::cout << "port:" << ntohs(serverAddress.sin_port) << std::endl;
 
   CHECK_RC("Failed to resolve url.");
 }
 
 void Client::openConnection() {
-  iResult = connect(clientSocket, (SOCKADDR*) &serverAddress, sizeof(serverAddress));
+  for (addrinfo* ptr = addressList; ptr != nullptr; ptr = ptr->ai_next) {
+    if ((iResult = connect(clientSocket, ptr->ai_addr, (int)ptr->ai_addrlen)) == 0) break;
+  }
+
+  serverAddress = *reinterpret_cast<sockaddr_in*>(addressList->ai_addr);
+
+  if (serverAddress.sin_port == htons(443)) {
+  }
 
   CHECK_RC("Failed to form connection to server.");
 
@@ -51,6 +69,10 @@ void Client::openConnection() {
 
 void Client::sendRequest(Request::Type type, std::string route) {
   std::string _request = Request::constructRequest(serverAddress, type, route);
+
+  if (serverAddress.sin_port == htons(443)) {
+    std::cout << "using secure socket\n";
+  }
 
   iResult = Request::sendRequest(clientSocket, _request);
 

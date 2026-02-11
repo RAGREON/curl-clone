@@ -15,18 +15,13 @@ private:
   SSL*                ssl;
 
 public:
-  SSLClient() {
+  SSLClient(SOCKET fd) {
     method = TLS_client_method();
-  }
 
-  void createContext() {
     ctx = SSL_CTX_new(method);
-    if (!ctx) {
+    if (!ctx) 
       exit(1);
-    }
-  }
-
-  void createSSL(SOCKET fd) {
+    
     ssl = SSL_new(ctx);
     SSL_set_fd(ssl, fd);
   }
@@ -41,8 +36,6 @@ public:
     if (SSL_write(ssl, request.c_str(), int(request.length())) <= 0) {
       std::cout << "error sending request";
     }
-
-    std::cout <<"send";
   }
 
   void recvResponse() {
@@ -50,7 +43,6 @@ public:
     int bytes;
 
     do {
-      std::cout << "response";
       bytes = SSL_read(ssl, buffer, sizeof(buffer) - 1);
       if (bytes > 0) {
         buffer[bytes] = '\0';
@@ -60,8 +52,6 @@ public:
         std::cout << "error";
       }
     } while (bytes > 0);
-
-    std::cout << "response";
   }
 
   void closeConnection(SSL* ssl) {

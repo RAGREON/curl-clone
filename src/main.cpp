@@ -1,29 +1,33 @@
 #include <client.h>
 #include <manager.h>
-#include <ssl.h>
-#include <winsock.h>
 
 int main(int argc, char** argv) {
+  if (argc < 2) {
+    std::cerr << "url not provided\n";
+    return 1;
+  }
+  
+  std::string url = argv[1];
+
   Manager manager;
   manager.initialize();
 
-  Client* socket_client = new Client(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-  SSLClient* ssl_client = new SSLClient(); 
+  Client socket_client = Client(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 
-  socket_client->setServerAddress("142.250.76.68", 443);
-  socket_client->openConnection();
+  socket_client.setServerAddress(url);
+  socket_client.openConnection();
   
-  SOCKET fd = socket_client->getSocket();
+  SOCKET fd = socket_client.getSocket();
+  sockaddr_in address = socket_client.getAddress();
 
-  ssl_client->createContext();
-  ssl_client->createSSL(fd);
-  ssl_client->sslConnect();
+  // SSLClient ssl_client = SSLClient(fd); 
+  // ssl_client.sslConnect();
 
-  std::string request = "GET / HTTP/1.1\r\nHost: 142.250.76.68:443\r\nConnection: close\r\n\r\n";
-  ssl_client->sendRequest(request);
-  ssl_client->recvResponse();
+  // std::string _request = Request::constructRequest(address, Request::GET, "/");
 
-  delete ssl_client;
+  // ssl_client.sendRequest(_request);
+  // ssl_client.recvResponse();
+
 
   return 0;
 }

@@ -28,6 +28,9 @@ namespace Url {
     }
     else {
       _meta.host = url;
+
+      if (_meta.scheme == "https")
+        _meta.port = 443;
     }
 
     return _meta;

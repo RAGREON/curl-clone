@@ -1,5 +1,7 @@
 #include <request.h>
 
+#include <sstream>
+
 namespace Request {
   std::string constructRequest(sockaddr_in& address, Type type, std::string route) {
     std::stringstream request, header, host, body;
