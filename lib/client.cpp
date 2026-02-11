@@ -1,3 +1,4 @@
+#include "ssl.h"
 #include <client.h>
 
 #include <iostream>
@@ -62,6 +63,7 @@ void Client::openConnection() {
   serverAddress = *reinterpret_cast<sockaddr_in*>(addressList->ai_addr);
 
   if (serverAddress.sin_port == htons(443)) {
+    std::cout << "https port\n";
   }
 
   CHECK_RC("Failed to form connection to server.");
@@ -73,13 +75,17 @@ void Client::openConnection() {
 void Client::sendRequest(Request::Type type, std::string route) {
   std::string _request = Request::constructRequest(serverAddress, type, route);
 
-  if (serverAddress.sin_port == htons(443)) {
-    std::cout << "using secure socket\n";
+  if (serverAddress.sin_port != htons(443)) {
+    iResult = Request::sendRequest(clientSocket, _request);
+    CHECK_RC("Failed to send request.");
+    return;
   }
 
-  iResult = Request::sendRequest(clientSocket, _request);
+  SSLClient* _client = new SSLClient(clientSocket);
 
-  CHECK_RC("Failed to send request.");
+  _client->sslConnect();
+  _client->sendRequest(_request);
+  _client->recvResponse();
 }
 
 std::string Client::recvResponse() {
@@ -110,6 +116,5 @@ void Client::closeConnection() {
 }
 
 Client::~Client() {
-  WSACleanup();
   closeConnection();
 }
