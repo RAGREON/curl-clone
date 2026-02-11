@@ -1,3 +1,3 @@
 #!/bin/bash
 
-g++ main.cpp -o client.exe -lWs2_32
+g++ -std=c++20 -I"./include" lib/*.cpp src/main.cpp -o client.exe -lssl -lcrypto -lws2_32

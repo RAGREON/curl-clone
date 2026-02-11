@@ -1,5 +1,8 @@
 #include <client.h>
 
+#include <iostream>
+#include <sstream>
+
 #define LOG_ERROR(info, line) \
   std::cout << "LINE: " << line << " | "; \
   std::cerr << info << " " << WSAGetLastError() << std::endl;
@@ -96,10 +99,6 @@ std::string Client::recvResponse() {
   } while (iResult > 0);
 
   return response.str();
-}
-
-SOCKET Client::getSocket() {
-  return clientSocket;
 }
 
 void Client::closeConnection() {

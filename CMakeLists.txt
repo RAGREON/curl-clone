@@ -1,24 +1,19 @@
 cmake_minimum_required(VERSION 3.15)
 project(curl-clone-client LANGUAGES CXX)
 
-# 1. Set C++20 standard
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# 2. Include directories (-I)
-# Use forward slashes even on Windows for CMake compatibility
-include_directories("C:/Programming/Projects/curl-clone/include")
+# Generates compile_commands.json automatically for clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# 3. Collect source files (lib/*.cpp and src/main.cpp)
-file(GLOB_RECURSE ALL_SOURCES 
-  "lib/*.cpp" 
-  "src/main.cpp"
-)
-set(SOURCES ${LIB_SOURCES} "src/main.cpp")
+# Use project-relative paths so it works for others too
+include_directories("${CMAKE_SOURCE_DIR}/include")
 
-# 4. Define the executable (-o client.exe)
+# Collect all .cpp files in lib and src
+file(GLOB_RECURSE SOURCES "lib/*.cpp" "src/*.cpp")
+
 add_executable(client ${SOURCES})
 
-# 5. Link libraries (-lWs2_32 -lssl -lcrypto)
-# On Windows, we link to Ws2_32 for networking
+# Linking
 target_link_libraries(client PRIVATE Ws2_32 ssl crypto)

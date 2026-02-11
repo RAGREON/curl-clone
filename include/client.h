@@ -5,8 +5,6 @@
 
 #include <ws2tcpip.h>
 #include <string>
-#include <iostream>
-#include <sstream>
 #include <url.h>
 #include <request.h>
 
@@ -32,9 +30,9 @@ public:
   void openConnection();
   void sendRequest(Request::Type type, std::string route = "/"); 
   std::string recvResponse();
-  SOCKET getSocket();
+  SOCKET getSocket() const { return clientSocket; };
   sockaddr_in getAddress() const { return serverAddress; }
   void closeConnection();
- 
+
   ~Client();
 };
