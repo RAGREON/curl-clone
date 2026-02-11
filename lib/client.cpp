@@ -37,7 +37,7 @@ Client::Client(int af_family, int sock_type, int protocol) {
   addressList = nullptr;
 }
 
-void Client::setServerAddress(std::string url) {
+void Client::setHostAddress(std::string url) {
   addrinfo hints {};
   hints.ai_family = AF_INET;
   hints.ai_socktype = SOCK_STREAM;

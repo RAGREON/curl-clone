@@ -26,7 +26,7 @@ private:
 public:
   Client(int af_family, int sock_type, int protocol);
 
-  void setServerAddress(std::string url); 
+  void setHostAddress(std::string url); 
   void openConnection();
   void sendRequest(Request::Type type, std::string route = "/"); 
   std::string recvResponse();
